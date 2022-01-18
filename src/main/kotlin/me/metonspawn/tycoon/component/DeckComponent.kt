@@ -15,7 +15,6 @@ class DeckComponent(card: Card): CardComponent(card) {
         setOnMouseClicked {
             println(super.getStyleClass())
             removeClass(Styles.cardComponent)
-            addClass(Styles.selected) //<- but it doesnt do anything if i do it here????
             println(super.getStyleClass())
             println("Clicked ${card.value}, ${card.suit}")
             val game = find(MainView::class).game!!
@@ -23,7 +22,7 @@ class DeckComponent(card: Card): CardComponent(card) {
             val board = game.getBoard()
             if (gameView.selectedCard == null) { //selection-deselection
                 gameView.selectCard(this)
-
+                addClass(Styles.selected) //<- but it doesnt do anything if i do it here????
                 println("Selected card is ${gameView.selectedCard!!.card.value}, ${gameView.selectedCard!!.card.suit}")
             } else {
                 gameView.deselectCard()
