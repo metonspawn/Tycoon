@@ -1,15 +1,12 @@
 package me.metonspawn.tycoon.view
 
 import javafx.geometry.Pos
-import javafx.scene.layout.Background
-import javafx.scene.layout.BackgroundFill
 import javafx.scene.layout.HBox
 import javafx.scene.paint.Color
 import me.metonspawn.tycoon.app.Styles
-import me.metonspawn.tycoon.component.CardComponent
 import me.metonspawn.tycoon.component.DeckComponent
-import me.metonspawn.tycoon.core.Card
-import me.metonspawn.tycoon.core.Suit
+import me.metonspawn.tycoon.component.PileComponent
+import me.metonspawn.tycoon.core.Pile
 import tornadofx.*
 
 class GameView: View("Tycoon") {
@@ -96,13 +93,32 @@ class GameView: View("Tycoon") {
 
     fun selectCard(component: DeckComponent) {
         this.selectedCard = component
-        //selectedCard!!.addClass(Styles.selected)
-        println(component.styleClass)
+        selectedCard!!.addClass(Styles.selected)
+        highlightPiles()
     }
     fun deselectCard() {
         if (selectedCard == null) return
         println("No")
-        //selectedCard!!.removeClass(Styles.selected)
+        selectedCard!!.removeClass(Styles.selected)
+        ceaseHighlightPiles()
         this.selectedCard = null
+    }
+
+    fun highlightPiles() { //highlight all piles where the selected card may be placed
+        for (pileComponent in pileBox.children) {
+            assert(pileComponent is PileComponent) //this is kinda hurting my soul
+            if ((pileComponent as PileComponent).checkSettable()) {
+                pileComponent.addClass(Styles.highlighted)
+            }
+        }
+    }
+
+    fun ceaseHighlightPiles() {
+        for (pileComponent in pileBox.children) {
+            assert(pileComponent is PileComponent) //this is kinda hurting my soul
+            if ((pileComponent as PileComponent).checkSettable()) {
+                pileComponent.removeClass(Styles.highlighted)
+            }
+        }
     }
 }

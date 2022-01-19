@@ -31,6 +31,8 @@ class Styles : Stylesheet() {
         }
         highlighted {
             borderColor += box(Color.BLUE)
+            borderWidth += CssBox(2.px,2.px,2.px,2.px)
+            borderStyle += BorderStrokeStyle.SOLID
         }
     }
 }
