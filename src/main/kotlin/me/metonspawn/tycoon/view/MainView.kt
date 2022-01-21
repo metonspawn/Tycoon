@@ -1,6 +1,7 @@
 package me.metonspawn.tycoon.view
 
 import me.metonspawn.tycoon.core.Game
+import me.metonspawn.tycoon.util.Files
 import tornadofx.*
 
 class MainView : View("Tycoon") {

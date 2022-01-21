@@ -14,6 +14,8 @@ class Styles : Stylesheet() {
         val cardComponent by cssclass()
         val selected by cssclass()
         val highlighted by cssclass()
+        val endButton by cssclass()
+        val buttonLocked by cssclass()
     }
 
     init {
@@ -33,6 +35,13 @@ class Styles : Stylesheet() {
             borderColor += box(Color.BLUE)
             borderWidth += CssBox(2.px,2.px,2.px,2.px)
             borderStyle += BorderStrokeStyle.SOLID
+        }
+        endButton {
+            fontSize = 20.px
+            fontWeight = FontWeight.BOLD
+        }
+        buttonLocked {
+            backgroundColor += Color.DARKGRAY
         }
     }
 }

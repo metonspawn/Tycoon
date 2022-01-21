@@ -33,14 +33,14 @@ class Game(playerCount: Int = 2) {
         board = Board(this)
         deal()
         var running = true
-        while (running) {
-            turn++
-            currentPlayer = players[turn % players.size]
-            find(GameView::class).refresh()
-            //now it's time to wait for the user to click around the cards and you know, actually play
-            //this probably means that code execution has to wait until user input is completed, but waits and resumes are probably not a good way to do clean code
-            running = false
-        }
+        turn()
+    }
+
+    fun turn() {
+        turn++
+        currentPlayer = players[turn % players.size]
+        board!!.push()
+        find(GameView::class).refresh()
     }
 
     fun getBoard(): Board {

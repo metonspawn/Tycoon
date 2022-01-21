@@ -39,14 +39,23 @@ class PileComponent(card: Card, val pileIndex: Int): CardComponent(card) {
         val game = find(MainView::class).game!!
         val board = game.getBoard()
         val selectedCard = gameView.selectedCard!!.card
-        if (board.tempState[pileIndex].card.value != 0) return false
+
+        if (board.tempState[pileIndex].card.value != 0) return false //pile vacancy check
+
+        var otherStatePileValue = 0 //eliminate piles which did not have a card placed on them the previous turn
+        for (pile in board.state) { //get the value of placed cards, if there are any
+            otherStatePileValue =  if (pile.card.value != 0) {pile.card.value} else {0}
+            if (otherStatePileValue != 0) { break }
+        }
+        if (board.state[pileIndex].card.value != otherStatePileValue) return false
+
         if (selectedCard.check(board.state[pileIndex])) {
-            var otherPileValue = 0 //same-value check
-            for (pile in board.tempState) { //get the value of the other placed cards, if there are any
-                otherPileValue = if (pile.card.value != 0) {pile.card.value} else {0}
-                if (otherPileValue != 0) { break }
+            var otherTempPileValue = 0 //same-value check
+            for (pileIndex in 0..3) { //get the value of the other placed cards, if there are any
+                otherTempPileValue = if (board.tempState[pileIndex].card.value != 0) {board.tempState[pileIndex].card.value} else {0}
+                if (otherTempPileValue != 0) { break }
             }
-            if (selectedCard.value == otherPileValue || otherPileValue == 0) {
+            if (selectedCard.value == otherTempPileValue || otherTempPileValue == 0) {
                 return true
             }
         }; return false

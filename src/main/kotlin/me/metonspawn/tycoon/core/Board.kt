@@ -19,13 +19,13 @@ class Board(val game: Game) {
 
     fun undo(pileIndex: Int) {
         println("from tempState: ${tempState[pileIndex].card.value}, state: ${state[pileIndex].card.value}")
-        tempState[pileIndex].card = state[pileIndex].card
+        tempState[pileIndex].card = Card(0,Suit.NONE)
         println("to tempState: ${tempState[pileIndex].card.value}, state: ${state[pileIndex].card.value}")
     }
 
-    private fun push() {
+    fun push() {
         for (i in 0..3) {
-            state[i] = tempState[i]
+            state[i].card = Card(tempState[i].card.value, tempState[i].card.suit)
             tempState[i].card = Card(0,Suit.NONE)
         }
     }
