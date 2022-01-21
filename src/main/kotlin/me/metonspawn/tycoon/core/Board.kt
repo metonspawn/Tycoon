@@ -2,19 +2,23 @@ package me.metonspawn.tycoon.core
 
 class Board(val game: Game) {
     var revolution = false
+    var elevenBack = false
     val state = mutableListOf<Pile>()
     val tempState = mutableListOf<Pile>()
 
     fun clear() {
+        tempState.clear()
         state.clear()
-    }
-
-    init {
-        revolution = false
         for (i in 0..3) {
             tempState.add(Pile(Card(0,Suit.NONE), this))
             state.add(Pile(Card(0,Suit.NONE), this))
         }
+        elevenBack = false
+    }
+
+    init {
+        revolution = false
+        clear()
     }
 
     fun undo(pileIndex: Int) {

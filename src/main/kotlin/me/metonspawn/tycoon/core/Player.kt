@@ -1,11 +1,3 @@
 package me.metonspawn.tycoon.core
 
-class Player {
-    val deck = mutableListOf<Card>()
-
-    fun endTurn() {}
-
-    fun showDeck() {
-
-    }
-}
+data class Player(val deck: MutableList<Card> = mutableListOf(), var forfeitTrick: Boolean = false)

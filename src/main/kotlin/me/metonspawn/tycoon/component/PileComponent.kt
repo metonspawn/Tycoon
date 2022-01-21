@@ -9,7 +9,6 @@ class PileComponent(card: Card, val pileIndex: Int): CardComponent(card) {
     init {
         init()
         setOnMouseClicked {
-            println("Clicked ${pileIndex}th pile")
             val gameView = find(GameView::class)
             if (gameView.selectedCard != null) { //card placement
                 if (setCard()) { //if successful then refresh
@@ -62,12 +61,10 @@ class PileComponent(card: Card, val pileIndex: Int): CardComponent(card) {
     }
 
     private fun removeCard() {
-        println("Removal..")
         val gameView = find(GameView::class)
         val game = find(MainView::class).game!!
         val board = game.getBoard()
         if (board.tempState[pileIndex].card.value != 0) {
-            println("Pile exists")
             board.undo(pileIndex)
             game.getCurrentPlayer().deck.add(card)
             gameView.refresh()

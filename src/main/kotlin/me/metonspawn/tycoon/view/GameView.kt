@@ -51,8 +51,12 @@ class GameView: View("Tycoon") {
                     endButton.addClass(Styles.endButton)
                     endButton.setPrefSize(120.0,50.0)
                     endButton.action {
-                            if (!validatePlay()) return@action
-                            find(MainView::class).game!!.turn()
+                        val game = find(MainView::class).game
+                        when (validatePlay()) {
+                            PlayValidity.INVALID -> return@action
+                            PlayValidity.FORFEIT -> game!!.forfeitTurn()
+                            PlayValidity.VALID -> game!!.turn()
+                        }
                     }
                     add(endButton)
                     vbox { //using this to position the button because I'm a bad developer
@@ -104,8 +108,6 @@ class GameView: View("Tycoon") {
         for (i in 0..3) {
             val stateCard = board.state[i]
             val tempCard = board.tempState[i]
-            println("state[$i]: ${stateCard.card.value}")
-            println("temp[$i]: ${tempCard.card.value}")
             if (tempCard.card.value != 0) { //if there is no tempState card, it means that it has been removed, and as such the state card should be shown
                 pileBox.add(PileComponent(tempCard.card, i))
             } else {
@@ -116,7 +118,7 @@ class GameView: View("Tycoon") {
 
     fun refresh() {
         updateBoard(); updateDeck()
-        if (validatePlay()) {endButton.removeClass(Styles.buttonLocked)} else {endButton.addClass(Styles.buttonLocked)}
+        if (validatePlay() != PlayValidity.INVALID) {endButton.removeClass(Styles.buttonLocked)} else {endButton.addClass(Styles.buttonLocked)}
     }
 
     fun selectCard(component: DeckComponent) {
@@ -150,12 +152,25 @@ class GameView: View("Tycoon") {
         }
     }
 
-    fun validatePlay(): Boolean {
+    private fun validatePlay(): PlayValidity {
         val game = find(MainView::class).game
         val board = game!!.getBoard()
-        for (i in 0..3) {
-            if (board.state[i].card.value != 0 && board.tempState[i].card.value == 0) return false
+        var isCardPlaced = false //check if a card has been placed
+        for (pileIndex in 0..3) {
+            isCardPlaced = board.tempState[pileIndex].card.value != 0
+            //println(board.tempState[pileIndex].card.value)
+            if (isCardPlaced) break
         }
-        return true
+        if (!isCardPlaced) return PlayValidity.FORFEIT //to forfeit the trick
+        for (i in 0..3) {
+            if (board.state[i].card.value != 0 && board.tempState[i].card.value == 0) return PlayValidity.INVALID
+        }
+        return PlayValidity.VALID
+    }
+
+    private enum class PlayValidity() {
+        VALID,
+        INVALID,
+        FORFEIT
     }
 }
