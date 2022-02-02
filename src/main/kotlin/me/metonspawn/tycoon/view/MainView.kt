@@ -1,11 +1,10 @@
 package me.metonspawn.tycoon.view
 
 import me.metonspawn.tycoon.core.Game
-import me.metonspawn.tycoon.util.Files
 import tornadofx.*
 
 class MainView : View("Tycoon") {
-    var game: Game? = null
+    lateinit var game: Game
 
     override val root = vbox {
         setPrefSize(800.0,600.0)
@@ -36,9 +35,9 @@ class MainView : View("Tycoon") {
         }
     }
 
-    fun start() {
+    private fun start() {
         replaceWith<GameView>()
         game = Game(2)
-        game!!.start()
+        game.start()
     }
 }

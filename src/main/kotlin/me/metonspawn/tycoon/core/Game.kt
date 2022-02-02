@@ -5,11 +5,12 @@ import tornadofx.*
 import kotlin.math.max
 
 class Game(playerCount: Int = 2) {
-    val players = mutableListOf<Player>()
-    val gamerules = Gamerules()
-    private var board: Board? = null
+    private val players = mutableListOf<Player>()
+    private val gamerules = Gamerules()
+    private lateinit var board: Board
     private var playerIterator: Int = 0
-    private var currentPlayer: Player? = null
+    private lateinit var currentPlayer: Player
+    val pileCount = 5
 
     init {
         for (i in 1..playerCount) {
@@ -17,7 +18,7 @@ class Game(playerCount: Int = 2) {
         }
     }
 
-    fun deal() {
+    private fun deal() {
         val cards = mutableListOf<Card>()
         for (suit in Suit.values()) {
             if (suit == Suit.NONE) { continue }
@@ -34,23 +35,22 @@ class Game(playerCount: Int = 2) {
     fun start() {
         board = Board(this)
         deal()
-        var running = true
         turn()
     }
 
     fun turn() {
-        board!!.push()
+        board.push()
         nextPlayer()
-        find(GameView::class).refresh()
+        find(GameView::class).update()
     }
 
     fun forfeitTurn() {
-        currentPlayer!!.forfeitTrick = true
+        currentPlayer.forfeitTrick = true
         nextPlayer()
-        find(GameView::class).refresh()
+        find(GameView::class).update()
     }
 
-    fun nextPlayer() {
+    private fun nextPlayer() {
         if(specialEffect()) return
 
         var playersAllForfeited = true
@@ -62,36 +62,36 @@ class Game(playerCount: Int = 2) {
 
         playerIterator++ //repeat until it gets to the next player still in the field
         currentPlayer = players[playerIterator % players.size]
-        if (currentPlayer!!.forfeitTrick) {nextPlayer()}
+        if (currentPlayer.forfeitTrick) {nextPlayer()}
     }
 
     private fun endTrick() {
         println("Trick End")
-        board!!.clear()
+        board.clear()
         for (player in players) {
             player.forfeitTrick = false
         }
-        find(GameView::class).refresh()
+        find(GameView::class).update()
     }
 
     private fun specialEffect(): Boolean { //return true if it should interrupt nextPlayer()
         var highestCardValue = 0 //8-cutting
         for (i in 0..3) {
-            highestCardValue = max(highestCardValue, board!!.state[i].card.value)
+            highestCardValue = max(highestCardValue, board.state[i].card.value)
         }
         when (highestCardValue) {
             8 -> if (gamerules.eightCutting) { endTrick(); return true}
-            11 -> if (gamerules.elevenBack) { board!!.elevenBack = !board!!.elevenBack; return false }
+            11 -> if (gamerules.elevenBack) { board.elevenBack = !board.elevenBack; return false }
         }
         return false
     }
 
     fun getBoard(): Board {
-        return board!!
+        return board
     }
 
     fun getCurrentPlayer(): Player {
-        return currentPlayer!!
+        return currentPlayer
     }
 
     data class Gamerules(var eightCutting: Boolean = true, var elevenBack: Boolean = true)

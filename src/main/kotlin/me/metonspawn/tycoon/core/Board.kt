@@ -1,6 +1,6 @@
 package me.metonspawn.tycoon.core
 
-class Board(val game: Game) {
+class Board(private val game: Game) {
     var revolution = false
     var elevenBack = false
     val state = mutableListOf<Pile>()
@@ -9,7 +9,7 @@ class Board(val game: Game) {
     fun clear() {
         tempState.clear()
         state.clear()
-        for (i in 0..3) {
+        for (i in 0 until game.pileCount) {
             tempState.add(Pile(Card(0,Suit.NONE), this))
             state.add(Pile(Card(0,Suit.NONE), this))
         }
@@ -28,7 +28,7 @@ class Board(val game: Game) {
     }
 
     fun push() {
-        for (i in 0..3) {
+        for (i in 0 until game.pileCount) {
             state[i].card = Card(tempState[i].card.value, tempState[i].card.suit)
             tempState[i].card = Card(0,Suit.NONE)
             state[i].lock = tempState[i].lock

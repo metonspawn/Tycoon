@@ -2,19 +2,15 @@ package me.metonspawn.tycoon.component
 
 import javafx.geometry.Pos
 import javafx.scene.control.Label
-import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import javafx.scene.layout.BorderPane
-import javafx.scene.layout.HBox
-import javafx.scene.paint.Color
 import me.metonspawn.tycoon.app.Styles
 import me.metonspawn.tycoon.util.Files
-import me.metonspawn.tycoon.view.MainView
 import tornadofx.*
 
-class LockMenu(val parent: PileComponent): BorderPane() {
-    private var image: ImageView? = null
-    private var label: Label? = null
+class LockMenu(private val parent: PileComponent): BorderPane() {
+    private lateinit var image: ImageView
+    private lateinit var label: Label
 
     init {
         setMaxSize(55.0,20.0)
@@ -47,17 +43,17 @@ class LockMenu(val parent: PileComponent): BorderPane() {
             this.removeClass(Styles.buttonUnhover)
             this.addClass(Styles.buttonHover)
             if (parent.getLocked()) {
-                image!!.imageProperty().set(Files.UNLOCKED.image)
+                image.imageProperty().set(Files.UNLOCKED.image)
             } else {
-                image!!.imageProperty().set(Files.LOCKED.image)
+                image.imageProperty().set(Files.LOCKED.image)
             }
         } else {
             this.removeClass(Styles.buttonHover)
             this.addClass(Styles.buttonUnhover)
             if (parent.getLocked()) {
-                image!!.imageProperty().set(Files.LOCKED.image)
+                image.imageProperty().set(Files.LOCKED.image)
             } else {
-                image!!.imageProperty().set(Files.UNLOCKED.image)
+                image.imageProperty().set(Files.UNLOCKED.image)
             }
         }
     }
@@ -70,6 +66,6 @@ class LockMenu(val parent: PileComponent): BorderPane() {
     }
 
     private fun updateText() {
-        label!!.text = if (parent.getLocked()) { "Unlock" } else { "Lock" }
+        label.text = if (parent.getLocked()) { "Unlock" } else { "Lock" }
     }
 }

@@ -1,16 +1,11 @@
 package me.metonspawn.tycoon.component
 
-import javafx.geometry.Pos
 import javafx.scene.layout.BorderPane
 import javafx.scene.layout.BorderStrokeStyle
-import javafx.scene.paint.Color
 import me.metonspawn.tycoon.app.Styles
 import me.metonspawn.tycoon.core.Card
-import me.metonspawn.tycoon.core.Pile
 import me.metonspawn.tycoon.core.Suit
 import me.metonspawn.tycoon.util.Files
-import me.metonspawn.tycoon.view.GameView
-import me.metonspawn.tycoon.view.MainView
 import tornadofx.*
 
 abstract class CardComponent(val card: Card): BorderPane() {

@@ -1,24 +1,22 @@
 package me.metonspawn.tycoon.view
 
-import com.sun.org.apache.xpath.internal.operations.Bool
 import javafx.geometry.Pos
 import javafx.scene.control.Button
 import javafx.scene.layout.HBox
 import javafx.scene.paint.Color
-import javafx.scene.text.FontWeight
 import me.metonspawn.tycoon.app.Styles
 import me.metonspawn.tycoon.component.DeckComponent
 import me.metonspawn.tycoon.component.LockMenu
 import me.metonspawn.tycoon.component.PileComponent
-import me.metonspawn.tycoon.core.Board
-import me.metonspawn.tycoon.core.Pile
+import me.metonspawn.tycoon.core.Game
 import tornadofx.*
 
 class GameView: View("Tycoon") {
+    private val game: Game by lazy { find(MainView::class).game }
     private val deckBox = HBox()
     private val endButton = Button("End Turn")
     private val pileBox = HBox(8.0)
-    private var checkBox: HBox? = null
+    private lateinit var checkBox: HBox
     var selectedCard: DeckComponent? = null
 
     override val root = vbox {
@@ -52,17 +50,16 @@ class GameView: View("Tycoon") {
                 top = checkBox
                 setPrefSize(800.0,400.0)
                 center = pileBox
-                bottom =  hbox() {
+                bottom =  hbox {
                     setPrefSize(800.0,150.0)
                     alignment = Pos.CENTER_RIGHT
                     endButton.addClass(Styles.endButton)
                     endButton.setPrefSize(120.0,50.0)
                     endButton.action {
-                        val game = find(MainView::class).game
                         when (validatePlay()) {
                             PlayValidity.INVALID -> return@action
-                            PlayValidity.FORFEIT -> game!!.forfeitTurn()
-                            PlayValidity.VALID -> game!!.turn()
+                            PlayValidity.FORFEIT -> game.forfeitTurn()
+                            PlayValidity.VALID -> game.turn()
                         }
                     }
                     add(endButton)
@@ -90,33 +87,22 @@ class GameView: View("Tycoon") {
         pileBox.alignment = Pos.CENTER
     }
 
-    fun updateDeck() {
+    private fun updateDeck() {
         deckBox.clear()
-        val game = find(MainView::class).game!!
         val cards = game.getCurrentPlayer().deck.sortedBy { it.value }
         for (card in cards) {
             deckBox.add(DeckComponent(card))
         }
     }
 
-    fun removeCard(card: DeckComponent) {
-        println("> Removed ${card.card.value}, ${card.card.suit} from Deck")
-        deckBox.children.remove(card)
-    }
-
-    fun removeCard(card: PileComponent) {
-        println("> Removed ${card.card.value}, ${card.card.suit} from Pile")
-        pileBox.children.remove(card)
-    }
-
-    fun updateBoard() {
+    private fun updateBoard() {
         pileBox.clear()
-        checkBox!!.clear()
-        val board = find(MainView::class).game!!.getBoard()
-        for (i in 0..3) {
+        checkBox.clear()
+        val board = game.getBoard()
+        for (i in 0 until game.pileCount) {
             val stateCard = board.state[i]
             val tempCard = board.tempState[i]
-            var card: PileComponent? = null
+            lateinit var card: PileComponent
             if (tempCard.card.value != 0) { //if there is no tempState card, it means that it has been removed, and as such the state card should be shown
                 card = PileComponent(tempCard.card, i)
                 pileBox.add(card)
@@ -124,11 +110,11 @@ class GameView: View("Tycoon") {
                 card = PileComponent(stateCard.card, i)
                 pileBox.add(card)
             }
-            checkBox!!.add(LockMenu(card)) //adding here to ensure that the game is already loaded
+            checkBox.add(LockMenu(card)) //adding here to pass around the instance
         }
     }
 
-    fun refresh() {
+    fun update() {
         updateBoard(); updateDeck()
         if (validatePlay() != PlayValidity.INVALID) {endButton.removeClass(Styles.buttonLocked)} else {endButton.addClass(Styles.buttonLocked)}
     }
@@ -138,6 +124,7 @@ class GameView: View("Tycoon") {
         selectedCard!!.addClass(Styles.selected)
         highlightPiles()
     }
+
     fun deselectCard() {
         if (selectedCard == null) return
         println("No")
@@ -146,7 +133,7 @@ class GameView: View("Tycoon") {
         this.selectedCard = null
     }
 
-    fun highlightPiles() { //highlight all piles where the selected card may be placed
+    private fun highlightPiles() { //highlight all piles where the selected card may be placed
         for (pileComponent in pileBox.children) {
             assert(pileComponent is PileComponent) //this is kinda hurting my soul
             if ((pileComponent as PileComponent).checkSettable()) {
@@ -155,7 +142,7 @@ class GameView: View("Tycoon") {
         }
     }
 
-    fun ceaseHighlightPiles() {
+    private fun ceaseHighlightPiles() {
         for (pileComponent in pileBox.children) {
             assert(pileComponent is PileComponent) //this is kinda hurting my soul
             if ((pileComponent as PileComponent).checkSettable()) {
@@ -165,22 +152,20 @@ class GameView: View("Tycoon") {
     }
 
     private fun validatePlay(): PlayValidity {
-        val game = find(MainView::class).game
-        val board = game!!.getBoard()
+        val board = game.getBoard()
         var isCardPlaced = false //check if a card has been placed
-        for (pileIndex in 0..3) {
+        for (pileIndex in 0 until game.pileCount) {
             isCardPlaced = board.tempState[pileIndex].card.value != 0
-            //println(board.tempState[pileIndex].card.value)
             if (isCardPlaced) break
         }
         if (!isCardPlaced) return PlayValidity.FORFEIT //to forfeit the trick
-        for (i in 0..3) {
+        for (i in 0 until game.pileCount) {
             if (board.state[i].card.value != 0 && board.tempState[i].card.value == 0) return PlayValidity.INVALID
         }
         return PlayValidity.VALID
     }
 
-    private enum class PlayValidity() {
+    private enum class PlayValidity {
         VALID,
         INVALID,
         FORFEIT
