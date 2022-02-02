@@ -8,6 +8,7 @@ import javafx.scene.paint.Color
 import javafx.scene.text.FontWeight
 import me.metonspawn.tycoon.app.Styles
 import me.metonspawn.tycoon.component.DeckComponent
+import me.metonspawn.tycoon.component.LockMenu
 import me.metonspawn.tycoon.component.PileComponent
 import me.metonspawn.tycoon.core.Board
 import me.metonspawn.tycoon.core.Pile
@@ -17,6 +18,7 @@ class GameView: View("Tycoon") {
     private val deckBox = HBox()
     private val endButton = Button("End Turn")
     private val pileBox = HBox(8.0)
+    private var checkBox: HBox? = null
     var selectedCard: DeckComponent? = null
 
     override val root = vbox {
@@ -42,7 +44,12 @@ class GameView: View("Tycoon") {
                 setPrefSize(800.0,100.0)
             }
             center = borderpane {
-                top = hbox {setPrefSize(800.0,150.0)}
+                checkBox = hbox(4.0) {
+                    setPrefSize(800.0,150.0)
+                    alignment = Pos.BOTTOM_CENTER
+                    paddingBottom = 10
+                }
+                top = checkBox
                 setPrefSize(800.0,400.0)
                 center = pileBox
                 bottom =  hbox() {
@@ -104,15 +111,20 @@ class GameView: View("Tycoon") {
 
     fun updateBoard() {
         pileBox.clear()
+        checkBox!!.clear()
         val board = find(MainView::class).game!!.getBoard()
         for (i in 0..3) {
             val stateCard = board.state[i]
             val tempCard = board.tempState[i]
+            var card: PileComponent? = null
             if (tempCard.card.value != 0) { //if there is no tempState card, it means that it has been removed, and as such the state card should be shown
-                pileBox.add(PileComponent(tempCard.card, i))
+                card = PileComponent(tempCard.card, i)
+                pileBox.add(card)
             } else {
-                pileBox.add(PileComponent(stateCard.card,i))
+                card = PileComponent(stateCard.card, i)
+                pileBox.add(card)
             }
+            checkBox!!.add(LockMenu(card)) //adding here to ensure that the game is already loaded
         }
     }
 

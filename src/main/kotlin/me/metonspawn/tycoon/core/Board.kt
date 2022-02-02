@@ -31,6 +31,7 @@ class Board(val game: Game) {
         for (i in 0..3) {
             state[i].card = Card(tempState[i].card.value, tempState[i].card.suit)
             tempState[i].card = Card(0,Suit.NONE)
+            state[i].lock = tempState[i].lock
         }
     }
 }

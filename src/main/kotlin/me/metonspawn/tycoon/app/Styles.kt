@@ -16,6 +16,8 @@ class Styles : Stylesheet() {
         val highlighted by cssclass()
         val endButton by cssclass()
         val buttonLocked by cssclass()
+        val buttonHover by cssclass()
+        val buttonUnhover by cssclass()
     }
 
     init {
@@ -42,6 +44,12 @@ class Styles : Stylesheet() {
         }
         buttonLocked {
             backgroundColor += Color.DARKGRAY
+        }
+        buttonHover {
+            backgroundColor += Color.MEDIUMAQUAMARINE
+        }
+        buttonUnhover {
+            backgroundColor += Color.WHITE
         }
     }
 }

@@ -29,7 +29,7 @@ abstract class CardComponent(val card: Card): BorderPane() {
             if (card.value == 0) { borderStyle += BorderStrokeStyle.DASHED }
         }
         this.top = borderpane {
-            left = label("${card.value}") {
+            left = label(displayValue()) {
             }
             right = imageview(image) {
                 fitHeight = 15.0
@@ -41,7 +41,20 @@ abstract class CardComponent(val card: Card): BorderPane() {
                 fitHeight = 15.0
                 fitWidth = 15.0
             }
-            right = label("${card.value}")
+            right = label(displayValue())
+        }
+    }
+
+    private fun displayValue(): String {
+        return when (card.value) {
+            3,4,5,6,7,8,9,10 -> card.value.toString()
+            11 -> "J"
+            12 -> "Q"
+            13 -> "K"
+            14 -> "A"
+            15 -> "2"
+            16 -> "JOKER"
+            else -> ""
         }
     }
 }
