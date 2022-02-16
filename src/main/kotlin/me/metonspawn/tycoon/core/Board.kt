@@ -1,5 +1,7 @@
 package me.metonspawn.tycoon.core
 
+import kotlin.math.max
+
 class Board(private val game: Game) {
     var revolution = false
     var elevenBack = false
@@ -28,8 +30,14 @@ class Board(private val game: Game) {
     }
 
     fun push() {
+        var otherTempStatePileValues = 0
         for (i in 0 until game.pileCount) {
-            state[i].card = Card(tempState[i].card.value, tempState[i].card.suit)
+            if (tempState[i].card.value == 16) continue
+            otherTempStatePileValues = max(otherTempStatePileValues,tempState[i].card.value)
+        }
+        for (i in 0 until game.pileCount) {
+            val value = if (tempState[i].card.value == 16) {otherTempStatePileValues} else {tempState[i].card.value}
+            state[i].card = Card(value, tempState[i].card.suit)
             tempState[i].card = Card(0,Suit.NONE)
             state[i].lock = tempState[i].lock
         }

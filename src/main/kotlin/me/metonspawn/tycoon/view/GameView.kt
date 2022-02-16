@@ -3,20 +3,22 @@ package me.metonspawn.tycoon.view
 import javafx.geometry.Pos
 import javafx.scene.control.Button
 import javafx.scene.layout.HBox
-import javafx.scene.paint.Color
 import me.metonspawn.tycoon.app.Styles
 import me.metonspawn.tycoon.component.DeckComponent
 import me.metonspawn.tycoon.component.LockMenu
 import me.metonspawn.tycoon.component.PileComponent
+import me.metonspawn.tycoon.component.PlayerComponent
 import me.metonspawn.tycoon.core.Game
+import me.metonspawn.tycoon.core.Player
 import tornadofx.*
 
 class GameView: View("Tycoon") {
-    private val game: Game by lazy { find(MainView::class).game }
+    lateinit var game: Game
     private val deckBox = HBox()
     private val endButton = Button("End Turn")
     private val pileBox = HBox(8.0)
-    private lateinit var checkBox: HBox
+    private val playerBox = HBox(8.0)
+    private val checkBox = HBox(4.0)
     var selectedCard: DeckComponent? = null
 
     override val root = vbox {
@@ -34,15 +36,14 @@ class GameView: View("Tycoon") {
             style {
                 backgroundColor += c("#0c4226")
             }
-            top = hbox {
-                style {
-                    backgroundColor += Color.WHITE
-                }
-                label("Top")
+            playerBox.apply {
+                alignment = Pos.TOP_CENTER
                 setPrefSize(800.0,100.0)
+                maxWidth = 800.0
             }
+            top = playerBox
             center = borderpane {
-                checkBox = hbox(4.0) {
+                checkBox.apply {
                     setPrefSize(800.0,150.0)
                     alignment = Pos.BOTTOM_CENTER
                     paddingBottom = 10
@@ -73,9 +74,6 @@ class GameView: View("Tycoon") {
                 alignment = Pos.TOP_CENTER
                 label("Deck") {
                     addClass(Styles.heading)
-                    style {
-                        textFill = Color.WHITE
-                    }
                 }
                 add(deckBox)
             }
@@ -114,8 +112,18 @@ class GameView: View("Tycoon") {
         }
     }
 
+    private fun updatePlayers() {
+        playerBox.clear()
+        val players = game.players.toMutableList()
+        players.remove(game.getCurrentPlayer())
+        for (player in players) {
+            playerBox.add(PlayerComponent(player, 792.0/(players.size) - 0 * players.size))
+            println(792.0/(players.size) - 0 * players.size)
+        }
+    }
+
     fun update() {
-        updateBoard(); updateDeck()
+        updateBoard(); updateDeck(); updatePlayers()
         if (validatePlay() != PlayValidity.INVALID) {endButton.removeClass(Styles.buttonLocked)} else {endButton.addClass(Styles.buttonLocked)}
     }
 
@@ -163,6 +171,15 @@ class GameView: View("Tycoon") {
             if (board.state[i].card.value != 0 && board.tempState[i].card.value == 0) return PlayValidity.INVALID
         }
         return PlayValidity.VALID
+    }
+
+    fun quit() {
+        replaceWith<MainView>()
+    }
+
+    fun replay() {
+        replaceWith<SetupView>()
+        find(SetupView::class,"basicRulesHolder" to game.generateBasicRulesHolder(),"gamerulesHolder" to game.generateGamerulesHolder())
     }
 
     private enum class PlayValidity {

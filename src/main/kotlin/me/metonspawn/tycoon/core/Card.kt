@@ -6,6 +6,8 @@ enum class Suit {
 
 class Card(val value: Int, val suit: Suit) {
     fun check(pile: Pile): Boolean {
+        if (pile.card.value == 0) return true
+        if (this.value == 16) return true
         if (pile.lock && pile.card.suit != this.suit) return false
         return if (pile.board.revolution xor pile.board.elevenBack) {
             (pile.card.value >= this.value)

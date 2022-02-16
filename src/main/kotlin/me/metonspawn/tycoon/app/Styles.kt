@@ -11,6 +11,7 @@ import tornadofx.Stylesheet.Companion.box
 class Styles : Stylesheet() {
     companion object {
         val heading by cssclass()
+        val bigText by cssclass()
         val cardComponent by cssclass()
         val selected by cssclass()
         val highlighted by cssclass()
@@ -25,6 +26,13 @@ class Styles : Stylesheet() {
             padding = box(5.px)
             fontSize = 15.px
             fontWeight = FontWeight.BOLD
+            textFill = Color.WHITE
+        }
+        label and bigText {
+            padding = box(5.px)
+            fontSize = 30.px
+            fontWeight = FontWeight.BOLD
+            textFill = Color.BLACK
         }
         cardComponent {
             backgroundColor += Color.WHITE

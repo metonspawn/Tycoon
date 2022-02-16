@@ -2,13 +2,14 @@ package me.metonspawn.tycoon.component
 
 import javafx.scene.input.MouseButton
 import me.metonspawn.tycoon.core.Card
+import me.metonspawn.tycoon.core.Suit
 import me.metonspawn.tycoon.view.GameView
 import me.metonspawn.tycoon.view.MainView
 import tornadofx.*
 
 class PileComponent(card: Card, private val pileIndex: Int): CardComponent(card) {
     private val gameView = find(GameView::class)
-    private val game = find(MainView::class).game
+    private val game = find(GameView::class).game
     private val board = game.getBoard()
 
     init {
@@ -52,7 +53,7 @@ class PileComponent(card: Card, private val pileIndex: Int): CardComponent(card)
                 otherTempPileValue = if (board.tempState[pileIndex].card.value != 0) {board.tempState[pileIndex].card.value} else {0}
                 if (otherTempPileValue != 0) { break }
             }
-            if (selectedCard.value == otherTempPileValue || otherTempPileValue == 0) {
+            if (selectedCard.value == otherTempPileValue || otherTempPileValue == 0 || selectedCard.value == 16) {
                 return true
             }
         }; return false
@@ -75,7 +76,7 @@ class PileComponent(card: Card, private val pileIndex: Int): CardComponent(card)
     }
 
     fun isLockToggleable(): Boolean { //if the pile has been locked in the past, it may not be unlocked later; the player must also be placing a card of the same suit as the one played one turn prior
-        if (board.tempState[pileIndex].card.value == 0) return false
+        if (board.tempState[pileIndex].card.suit == Suit.NONE) return false //cannot lock empty/joker piles
         if (board.state[pileIndex].lock) return false
         return (board.state[pileIndex].card.suit == board.tempState[pileIndex].card.suit)
     }

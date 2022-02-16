@@ -9,5 +9,6 @@ enum class Files(val image: Image) {
     DIAMOND(Image("diamond.png")),
     NONE(Image("none.png")),
     LOCKED(Image("locked.png")),
-    UNLOCKED(Image("unlocked.png"))
+    UNLOCKED(Image("unlocked.png")),
+    BACK(Image("back.png"))
 }
