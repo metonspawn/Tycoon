@@ -9,125 +9,113 @@ import me.metonspawn.tycoon.core.Game
 import me.metonspawn.tycoon.core.Player
 import tornadofx.*
 
-class SetupView(private val players: ObservableList<Player> = observableList(Player("One"),Player("Two"),Player("Three")), basicRulesHolder: BasicRulesHolder = BasicRulesHolder(), gamerulesHolder: GamerulesHolder = GamerulesHolder()): View("Tycoon") {
+class SetupView(var players: ObservableList<Player> = observableList(Player("Minato Yukina"),Player("Kousaka Kirino"),Player("Charles de Gaulle")), basicRulesHolder: BasicRulesHolder = BasicRulesHolder(), gamerulesHolder: GamerulesHolder = GamerulesHolder()): TycoonView() {
     private var nameField = SimpleStringProperty()
     private var selectedIndex: Int? = null
-    private val gamerulesModel = GamerulesModel(gamerulesHolder)
-    private val basicRulesModel = BasicRulesModel(basicRulesHolder)
+    val gamerulesModel = GamerulesModel(gamerulesHolder)
+    val basicRulesModel = BasicRulesModel(basicRulesHolder)
 
-    override val root = vbox {
-        setPrefSize(800.0, 600.0)
-        menubar {
-            menu("Game") {
-                item("Save")
-                item("Load")
-            }
-            menu("Language") {
-                item("English")
-            }
-        }
-        hbox(8.0) {
-            vbox {
-                prefWidth = 400.0
-                tableview(players) {
-                    readonlyColumn("Player Name", Player::name)
-                    readonlyColumn("Test",Player::finish)
-                    selectionModel.selectedIndexProperty().onChange {
-                        this@SetupView.selectedIndex = it
-                        println(it)
-                    }
-                    smartResize()
+    override val content = hbox(8.0) {
+        vbox {
+            prefWidth = 400.0
+            tableview(players) {
+                readonlyColumn("Player Name", Player::name)
+                readonlyColumn("Title",Player::title)
+                selectionModel.selectedIndexProperty().onChange {
+                    this@SetupView.selectedIndex = it
+                    println(it)
                 }
-                hbox(4.0) {
-                    alignment = Pos.CENTER
-                    button("Remove") {
-                        action {
-                            if (selectedIndex == null || selectedIndex == -1) return@action
-                            players.removeAt(selectedIndex!!)
-                            selectedIndex = null
-                        }
-                    }
-                    button("Remove All") {
-                        action {
-                            players.clear()
-                        }
-                    }
-                    form {
-                        style {
-                            paddingAll = 4
-                            paddingTop = 20.0
-                        }
-                        fieldset {
-                            field("Name") {
-                                textfield(nameField)
-                                button("Add") {
-                                    enableWhen(nameField.isNotEmpty)
-                                    action {
-                                        println(nameField)
-                                        players.add(Player(nameField.value))
-                                    }
-                                }
-                            }
-                        }
+                smartResize()
+            }
+            hbox(4.0) {
+                alignment = Pos.CENTER
+                button("Remove") {
+                    action {
+                        if (selectedIndex == null || selectedIndex == -1) return@action
+                        players.removeAt(selectedIndex!!)
+                        selectedIndex = null
                     }
                 }
-            }
-            vbox {
+                button("Remove All") {
+                    action {
+                        players.clear()
+                    }
+                }
                 form {
                     style {
-                        setSpacing(8.0)
+                        paddingAll = 4
+                        paddingTop = 20.0
                     }
-                    fieldset("Basic Rules") {
-                        flowpane {
-                            hgap = 8.0
-                            field("Number of Decks") {
-                                textfield(basicRulesModel.deckCount) {
-                                    filterInput {
-                                        if (!it.controlNewText.isInt()) return@filterInput false
-                                        return@filterInput (Integer.parseInt(it.controlNewText) > 0)
-                                    }
-                                }
-                            }
-                            field("Jokers") {
-                                checkbox(property = basicRulesModel.useJokers)
-                            }
-                            field("Number of Piles") {
-                                textfield(basicRulesModel.pileCount) {
-                                    filterInput {
-                                        if (!it.controlNewText.isInt()) return@filterInput false
-                                        return@filterInput (Integer.parseInt(it.controlNewText) > 0)
-                                    }
+                    fieldset {
+                        field("Name") {
+                            textfield(nameField)
+                            button("Add") {
+                                enableWhen(nameField.isNotEmpty)
+                                action {
+                                    println(nameField)
+                                    players.add(Player(nameField.value))
                                 }
                             }
                         }
-                        button("Reset") {
-                            action {
-                                println("${basicRulesModel.deckCount.value}, ${basicRulesModel.useJokers.value}")
-                                basicRulesModel.rollback()
+                    }
+                }
+            }
+        }
+        vbox {
+            form {
+                style {
+                    setSpacing(8.0)
+                }
+                fieldset("Basic Rules") {
+                    flowpane {
+                        hgap = 8.0
+                        field("Number of Decks") {
+                            textfield(basicRulesModel.deckCount) {
+                                filterInput {
+                                    if (!it.controlNewText.isInt()) return@filterInput false
+                                    return@filterInput (Integer.parseInt(it.controlNewText) > 0)
+                                }
+                            }
+                        }
+                        field("Jokers") {
+                            checkbox(property = basicRulesModel.useJokers)
+                        }
+                        field("Number of Piles") {
+                            textfield(basicRulesModel.pileCount) {
+                                filterInput {
+                                    if (!it.controlNewText.isInt()) return@filterInput false
+                                    return@filterInput (Integer.parseInt(it.controlNewText) > 0)
+                                }
                             }
                         }
                     }
-                    fieldset("Optional Rules") {
-                        hbox(8) {
-                            field("8-Cutting") {
-                                checkbox(property = gamerulesModel.eightCutting)
-                            }
-                            field("11-Back") {
-                                checkbox(property = gamerulesModel.elevenBack)
-                            }
-                        }
-                        button("Reset") {
-                            action {
-                                println("${gamerulesModel.eightCutting.value}, ${gamerulesModel.elevenBack.value}")
-                                gamerulesModel.rollback()
-                            }
-                        }
-                    }
-                    button("Start") {
+                    button("Reset") {
                         action {
-                            if (players.size < 2) return@action //Didn't have time to figure out how to work with enableWhen()
-                            start()
+                            println("${basicRulesModel.deckCount.value}, ${basicRulesModel.useJokers.value}")
+                            basicRulesModel.rollback()
                         }
+                    }
+                }
+                fieldset("Optional Rules") {
+                    hbox(8) {
+                        field("8-Cutting") {
+                            checkbox(property = gamerulesModel.eightCutting)
+                        }
+                        field("11-Back") {
+                            checkbox(property = gamerulesModel.elevenBack)
+                        }
+                    }
+                    button("Reset") {
+                        action {
+                            println("${gamerulesModel.eightCutting.value}, ${gamerulesModel.elevenBack.value}")
+                            gamerulesModel.rollback()
+                        }
+                    }
+                }
+                button("Start") {
+                    action {
+                        if (players.size < 2) return@action //Didn't have time to figure out how to work with enableWhen()
+                        start()
                     }
                 }
             }
@@ -154,12 +142,12 @@ class SetupView(private val players: ObservableList<Player> = observableList(Pla
         }
     }
 
-    private class GamerulesModel(gamerulesHolder: GamerulesHolder = GamerulesHolder()): ItemViewModel<GamerulesHolder>(gamerulesHolder) { //Model to temporarily hold the data
+    class GamerulesModel(gamerulesHolder: GamerulesHolder = GamerulesHolder()): ItemViewModel<GamerulesHolder>(gamerulesHolder) { //Model to temporarily hold the data
         val eightCutting = bind(GamerulesHolder::eightCuttingProperty)
         val elevenBack = bind(GamerulesHolder::elevenBackProperty)
     }
 
-    private class BasicRulesModel(basicRulesHolder: BasicRulesHolder = BasicRulesHolder()): ItemViewModel<BasicRulesHolder>(basicRulesHolder) { //Idem
+    class BasicRulesModel(basicRulesHolder: BasicRulesHolder = BasicRulesHolder()): ItemViewModel<BasicRulesHolder>(basicRulesHolder) { //Idem
         val deckCount = bind(BasicRulesHolder::deckCountProperty)
         val useJokers = bind(BasicRulesHolder::useJokersProperty)
         val pileCount = bind(BasicRulesHolder::pileCountProperty)
@@ -170,9 +158,5 @@ class SetupView(private val players: ObservableList<Player> = observableList(Pla
         val game = Game(players,basicRulesModel.item.deckCount,basicRulesModel.item.pileCount,basicRulesModel.item.useJokers,gamerulesModel.item.toGamerules()) //Initiating the game using the inputted data
         replaceWith<GameView>()
         game.start()
-    }
-
-    fun test() {
-        this.players.clear()
     }
 }

@@ -2,19 +2,9 @@ package me.metonspawn.tycoon.view
 
 import tornadofx.*
 
-class MainView : View("Tycoon") {
+class MainView: TycoonView() {
 
-    override val root = vbox {
-        setPrefSize(800.0,600.0)
-        menubar {
-            menu("Game") {
-                item("Save")
-                item("Load")
-            }
-            menu("Language") {
-                item("English")
-            }
-        }
+    override val content = vbox {
         hbox {
             setPrefSize(800.0,300.0)
         }
@@ -35,5 +25,9 @@ class MainView : View("Tycoon") {
 
     private fun start() {
         replaceWith<SetupView>()
+    }
+
+    override fun quit() {
+        this.close()
     }
 }

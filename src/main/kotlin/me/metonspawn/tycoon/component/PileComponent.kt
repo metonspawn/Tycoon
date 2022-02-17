@@ -4,7 +4,6 @@ import javafx.scene.input.MouseButton
 import me.metonspawn.tycoon.core.Card
 import me.metonspawn.tycoon.core.Suit
 import me.metonspawn.tycoon.view.GameView
-import me.metonspawn.tycoon.view.MainView
 import tornadofx.*
 
 class PileComponent(card: Card, private val pileIndex: Int): CardComponent(card) {
@@ -42,15 +41,17 @@ class PileComponent(card: Card, private val pileIndex: Int): CardComponent(card)
         if (board.tempState[pileIndex].card.value != 0) return false //pile vacancy check
         var otherStatePileValue = 0 //eliminate piles which did not have a card placed on them the previous turn
         for (pile in board.state) { //get the value of placed cards, if there are any
-            otherStatePileValue =  if (pile.card.value != 0) {pile.card.value} else {0}
+            if (board.state[pileIndex].card.value == 0) continue
+            otherStatePileValue = board.state[pileIndex].card.value
             if (otherStatePileValue != 0) { break }
         }
         if (board.state[pileIndex].card.value != otherStatePileValue) return false
 
         if (selectedCard.check(board.state[pileIndex])) {
             var otherTempPileValue = 0 //same-value check
-            for (pileIndex in 0 until game.pileCount) { //get the value of the other placed cards, if there are any
-                otherTempPileValue = if (board.tempState[pileIndex].card.value != 0) {board.tempState[pileIndex].card.value} else {0}
+            for (pileIndex in 0 until game.pileCount) { //get the value of the other placed cards, if there are any, excluding jokers
+                if (board.tempState[pileIndex].card.value == 0 || board.tempState[pileIndex].card.value == 16) continue
+                otherTempPileValue = board.tempState[pileIndex].card.value
                 if (otherTempPileValue != 0) { break }
             }
             if (selectedCard.value == otherTempPileValue || otherTempPileValue == 0 || selectedCard.value == 16) {

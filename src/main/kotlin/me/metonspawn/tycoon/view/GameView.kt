@@ -3,86 +3,83 @@ package me.metonspawn.tycoon.view
 import javafx.geometry.Pos
 import javafx.scene.control.Button
 import javafx.scene.layout.HBox
+import javafx.stage.FileChooser.ExtensionFilter
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import me.metonspawn.tycoon.app.Styles
 import me.metonspawn.tycoon.component.DeckComponent
 import me.metonspawn.tycoon.component.LockMenu
 import me.metonspawn.tycoon.component.PileComponent
 import me.metonspawn.tycoon.component.PlayerComponent
 import me.metonspawn.tycoon.core.Game
-import me.metonspawn.tycoon.core.Player
 import tornadofx.*
+import java.io.File
+import java.io.FileWriter
+import javax.swing.filechooser.FileSystemView
 
-class GameView: View("Tycoon") {
+class GameView: TycoonView() {
     lateinit var game: Game
-    private val deckBox = HBox()
-    private val endButton = Button("End Turn")
-    private val pileBox = HBox(8.0)
-    private val playerBox = HBox(8.0)
-    private val checkBox = HBox(4.0)
+    private var deckBox: HBox by singleAssign()
+    private var endButton: Button by singleAssign()
+    private var pileBox: HBox by singleAssign()
+    private var playerBox: HBox by singleAssign()
+    private var checkBox: HBox by singleAssign()
     var selectedCard: DeckComponent? = null
 
-    override val root = vbox {
-        setPrefSize(800.0,600.0)
-        menubar {
-            menu("Game") {
-                item("Save")
-                item("Load")
-            }
-            menu("Language") {
-                item("English")
-            }
+    override val content = borderpane {
+        style {
+            backgroundColor += c("#0c4226")
         }
-        borderpane {
-            style {
-                backgroundColor += c("#0c4226")
+        top = hbox(8) {
+            alignment = Pos.TOP_CENTER
+            setPrefSize(800.0,100.0)
+            maxWidth = 800.0
+            playerBox = this
+        }
+        center = borderpane {
+            setPrefSize(800.0,400.0)
+            top = hbox(4) {
+                setPrefSize(800.0,150.0)
+                alignment = Pos.BOTTOM_CENTER
+                paddingBottom = 10
+                checkBox = this
             }
-            playerBox.apply {
-                alignment = Pos.TOP_CENTER
-                setPrefSize(800.0,100.0)
-                maxWidth = 800.0
+            center = hbox(8) {
+                alignment = Pos.CENTER
+                pileBox = this
             }
-            top = playerBox
-            center = borderpane {
-                checkBox.apply {
-                    setPrefSize(800.0,150.0)
-                    alignment = Pos.BOTTOM_CENTER
-                    paddingBottom = 10
-                }
-                top = checkBox
-                setPrefSize(800.0,400.0)
-                center = pileBox
-                bottom =  hbox {
-                    setPrefSize(800.0,150.0)
-                    alignment = Pos.CENTER_RIGHT
-                    endButton.addClass(Styles.endButton)
-                    endButton.setPrefSize(120.0,50.0)
-                    endButton.action {
+            bottom = hbox {
+                setPrefSize(800.0,150.0)
+                alignment = Pos.CENTER_RIGHT
+                button("End Turn") {
+                    addClass(Styles.endButton)
+                    setPrefSize(120.0,50.0)
+                    action {
                         when (validatePlay()) {
                             PlayValidity.INVALID -> return@action
                             PlayValidity.FORFEIT -> game.forfeitTurn()
                             PlayValidity.VALID -> game.turn()
                         }
                     }
-                    add(endButton)
-                    vbox { //using this to position the button because I'm a bad developer
-                        setPrefSize(100.0,150.0)
-                    }
+                    endButton = this
                 }
-            }
-            bottom = vbox {
-                setPrefSize(800.0,100.0)
-                alignment = Pos.TOP_CENTER
-                label("Deck") {
-                    addClass(Styles.heading)
+                vbox { //using this to position the button because I'm a bad developer
+                    setPrefSize(100.0,150.0)
                 }
-                add(deckBox)
             }
         }
-    }
-
-    init {
-        deckBox.alignment = Pos.CENTER
-        pileBox.alignment = Pos.CENTER
+        bottom = vbox {
+            setPrefSize(800.0,100.0)
+            alignment = Pos.TOP_CENTER
+            label("Deck") {
+                addClass(Styles.heading)
+            }
+            hbox {
+                alignment = Pos.CENTER
+                deckBox = this
+            }
+        }
     }
 
     private fun updateDeck() {
@@ -114,11 +111,10 @@ class GameView: View("Tycoon") {
 
     private fun updatePlayers() {
         playerBox.clear()
-        val players = game.players.toMutableList()
-        players.remove(game.getCurrentPlayer())
-        for (player in players) {
-            playerBox.add(PlayerComponent(player, 792.0/(players.size) - 0 * players.size))
-            println(792.0/(players.size) - 0 * players.size)
+        val players = game.players
+        for (i in players.indices) {
+            if (i == game.getCurrentPlayerIndex()) continue
+            playerBox.add(PlayerComponent(players[i], 792.0/players.size))
         }
     }
 
@@ -135,7 +131,6 @@ class GameView: View("Tycoon") {
 
     fun deselectCard() {
         if (selectedCard == null) return
-        println("No")
         selectedCard!!.removeClass(Styles.selected)
         ceaseHighlightPiles()
         this.selectedCard = null
@@ -173,13 +168,43 @@ class GameView: View("Tycoon") {
         return PlayValidity.VALID
     }
 
-    fun quit() {
-        replaceWith<MainView>()
+    fun replay() {
+        val setupView = find(SetupView::class)
+        game.players.forEach{ println(it) }
+        setupView.players.setAll(game.getFinishedPlayers())
+        setupView.players.forEach { println(it) }
+        setupView.basicRulesModel.item = game.generateBasicRulesHolder()
+        setupView.gamerulesModel.item = game.generateGamerulesHolder()
+        replaceWith<SetupView>()
     }
 
-    fun replay() {
-        replaceWith<SetupView>()
-        find(SetupView::class,"basicRulesHolder" to game.generateBasicRulesHolder(),"gamerulesHolder" to game.generateGamerulesHolder())
+    fun save() {
+        if (!this::game.isInitialized) return
+        try {
+            val string = Json.encodeToString(game)
+            println(string)
+            val file = chooseFile("Save game file", filters = arrayOf(ExtensionFilter("Tycoon game save","*.dfg"), ExtensionFilter("All files", "*.*")), mode = FileChooserMode.Save) {
+                initialDirectory = File(FileSystemView.getFileSystemView().defaultDirectory.path) //Documents folder path
+            }[0]
+            val fileWriter = FileWriter(file)
+            fileWriter.write(string)
+            fileWriter.close()
+            println("Saved game")
+        } catch (_: Exception) { println("Failed to write") }
+    }
+
+    fun load(viewToReplace: View = this) {
+        try {
+            val file = chooseFile("Choose a save file", filters = arrayOf(ExtensionFilter("Tycoon game save","*.dfg"), ExtensionFilter("All files", "*.*")), mode = FileChooserMode.Single) {
+                initialDirectory = File(FileSystemView.getFileSystemView().defaultDirectory.path)
+            }[0]
+            val string = file.readText()
+            val game = Json.decodeFromString<Game>(string)
+            this.game = game
+            viewToReplace.replaceWith<GameView>()
+            update()
+            println("Loaded game")
+        } catch (_: Exception) { println("Failed to load") }
     }
 
     private enum class PlayValidity {

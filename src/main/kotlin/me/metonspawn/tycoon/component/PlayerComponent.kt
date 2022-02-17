@@ -28,7 +28,6 @@ class PlayerComponent(player: Player, fitWidth: Double): BorderPane() {
             }
             for (i in player.deck) {
                 this.add(UnrevealedCard(min(fitWidth/player.deck.size,50.0)))
-                println(fitWidth/player.deck.size)
             }
         }
     }

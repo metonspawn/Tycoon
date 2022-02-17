@@ -5,11 +5,13 @@ import me.metonspawn.tycoon.view.GameView
 import me.metonspawn.tycoon.view.SetupView
 import tornadofx.*
 import kotlin.math.max
+import kotlinx.serialization.Serializable
 
+@Serializable
 class Game(val players: List<Player>, private val deckCount: Int = 1, val pileCount: Int = 4, private val useJokers: Boolean = false, private val gamerules: Gamerules = Gamerules()) {
     private lateinit var board: Board
     private var playerIterator: Int = 0
-    private lateinit var currentPlayer: Player
+    private var currentPlayerIndex: Int = 0
     private val finishedPlayers = mutableListOf<Player>()
 
     private fun deal() {
@@ -20,7 +22,7 @@ class Game(val players: List<Player>, private val deckCount: Int = 1, val pileCo
                 if (suit == Suit.NONE) {
                     continue
                 }
-                for (value in 3..15) {
+                for (value in 3..3) {
                     cards.add(Card(value, suit))
                 }
             }
@@ -37,7 +39,7 @@ class Game(val players: List<Player>, private val deckCount: Int = 1, val pileCo
     fun start() {
         finishedPlayers.clear()
         find(GameView::class).game = this
-        board = Board(this)
+        board = Board()
         deal()
         turn()
     }
@@ -49,13 +51,12 @@ class Game(val players: List<Player>, private val deckCount: Int = 1, val pileCo
     }
 
     fun forfeitTurn() {
-        currentPlayer.forfeitTrick = true
+        players[currentPlayerIndex].forfeitTrick = true
         nextPlayer()
         find(GameView::class).update()
     }
 
     private fun nextPlayer() {
-        //end(); return
         if(specialEffect()) return
 
         var playersAllForfeited = true
@@ -72,11 +73,15 @@ class Game(val players: List<Player>, private val deckCount: Int = 1, val pileCo
         if (playersAllFinished) { end(); return }
         if (playersAllForfeited) { endTrick(); return }
 
-        if (this::currentPlayer.isInitialized && currentPlayer.deck.size == 0) { currentPlayer.finish = true; finishedPlayers.add(currentPlayer); println("$currentPlayer finished")}
+        if (getCurrentPlayer().deck.size == 0 && !getCurrentPlayer().finish) {
+            getCurrentPlayer().finish = true; finishedPlayers.add(getCurrentPlayer()); println("${getCurrentPlayer()} finished")
+        }
 
         playerIterator++ //repeat until it gets to the next player still in the field
-        currentPlayer = players[playerIterator % players.size]
-        if (currentPlayer.forfeitTrick || currentPlayer.finish) {nextPlayer()}
+        currentPlayerIndex = playerIterator % players.size
+        if (getCurrentPlayer().forfeitTrick || getCurrentPlayer().finish) {
+            nextPlayer()
+        }
     }
 
     private fun endTrick() {
@@ -84,6 +89,10 @@ class Game(val players: List<Player>, private val deckCount: Int = 1, val pileCo
         board.clear()
         for (player in players) {
             player.forfeitTrick = false
+        }
+        while(getCurrentPlayer().finish) {
+            playerIterator++
+            currentPlayerIndex = playerIterator % players.size
         }
         find(GameView::class).update()
     }
@@ -111,9 +120,26 @@ class Game(val players: List<Player>, private val deckCount: Int = 1, val pileCo
         for (i in 0 until rankingCount) {
             rankedPlayers.add(finishedPlayers[i])
         }
+
+        finishedPlayers.forEach { it.title = Title.COMMONER }
+        finishedPlayers[0].title = Title.PRESIDENT
+        finishedPlayers[finishedPlayers.size-1].title = Title.ASSHOLE
+        if (finishedPlayers.size > 3) {
+            finishedPlayers[1].title = Title.VICE_PRESIDENT
+            finishedPlayers[finishedPlayers.size-2].title = Title.VICE_ASS
+        }
+
         val params = "players" to rankedPlayers.observable()
-        find<WinnerFragment>(params = params).openModal(StageStyle.UNDECORATED, escapeClosesWindow = false)
+        find<WinnerFragment>(params = arrayOf(params)).openModal(StageStyle.UNDECORATED, escapeClosesWindow = false)
     }
+
+    fun generateBasicRulesHolder(): SetupView.BasicRulesHolder {
+        return SetupView.BasicRulesHolder(deckCount, useJokers, pileCount)
+    }
+    fun generateGamerulesHolder(): SetupView.GamerulesHolder {
+        return SetupView.GamerulesHolder(this.gamerules.eightCutting, this.gamerules.elevenBack)
+    }
+
 
     fun getBoard(): Board {
         return board
@@ -123,16 +149,14 @@ class Game(val players: List<Player>, private val deckCount: Int = 1, val pileCo
         return this.finishedPlayers.toList()
     }
 
+    fun getCurrentPlayerIndex(): Int {
+        return currentPlayerIndex
+    }
+
     fun getCurrentPlayer(): Player {
-        return currentPlayer
+        return players[currentPlayerIndex]
     }
 
+    @Serializable
     data class Gamerules(val eightCutting: Boolean = true, val elevenBack: Boolean = true)
-
-    fun generateBasicRulesHolder(): SetupView.BasicRulesHolder {
-        return SetupView.BasicRulesHolder(deckCount, useJokers, pileCount)
-    }
-    fun generateGamerulesHolder(): SetupView.GamerulesHolder {
-        return SetupView.GamerulesHolder(this.gamerules.eightCutting, this.gamerules.elevenBack)
-    }
 }
