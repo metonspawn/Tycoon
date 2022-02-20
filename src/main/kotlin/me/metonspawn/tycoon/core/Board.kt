@@ -2,7 +2,6 @@ package me.metonspawn.tycoon.core
 
 import kotlin.math.max
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 import me.metonspawn.tycoon.view.GameView
 import tornadofx.*
 

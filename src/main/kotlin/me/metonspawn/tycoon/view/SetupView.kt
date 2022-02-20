@@ -1,5 +1,6 @@
 package me.metonspawn.tycoon.view
 
+import javafx.beans.binding.Bindings
 import javafx.beans.property.SimpleBooleanProperty
 import javafx.beans.property.SimpleIntegerProperty
 import javafx.beans.property.SimpleStringProperty
@@ -7,6 +8,8 @@ import javafx.collections.ObservableList
 import javafx.geometry.Pos
 import me.metonspawn.tycoon.core.Game
 import me.metonspawn.tycoon.core.Player
+import me.metonspawn.tycoon.util.I18n
+import me.metonspawn.tycoon.util.I18n.bindMessage
 import tornadofx.*
 
 class SetupView(var players: ObservableList<Player> = observableList(Player("Minato Yukina"),Player("Kousaka Kirino"),Player("Charles de Gaulle")), basicRulesHolder: BasicRulesHolder = BasicRulesHolder(), gamerulesHolder: GamerulesHolder = GamerulesHolder()): TycoonView() {
@@ -19,8 +22,13 @@ class SetupView(var players: ObservableList<Player> = observableList(Player("Min
         vbox {
             prefWidth = 400.0
             tableview(players) {
-                readonlyColumn("Player Name", Player::name)
-                readonlyColumn("Title",Player::title)
+                readonlyColumn("Player Name", Player::name) { textProperty().bindMessage("playerName") }
+                column("Title",Player::title) {
+                    textProperty().bindMessage("title")
+                    cellFormat {
+                        textProperty().bind(it.messageBinding())
+                    }
+                }
                 selectionModel.selectedIndexProperty().onChange {
                     this@SetupView.selectedIndex = it
                     println(it)
@@ -29,14 +37,14 @@ class SetupView(var players: ObservableList<Player> = observableList(Player("Min
             }
             hbox(4.0) {
                 alignment = Pos.CENTER
-                button("Remove") {
+                button(I18n.messageBinding("remove")) {
                     action {
                         if (selectedIndex == null || selectedIndex == -1) return@action
                         players.removeAt(selectedIndex!!)
                         selectedIndex = null
                     }
                 }
-                button("Remove All") {
+                button(I18n.messageBinding("removeAll")) {
                     action {
                         players.clear()
                     }
@@ -48,8 +56,9 @@ class SetupView(var players: ObservableList<Player> = observableList(Player("Min
                     }
                     fieldset {
                         field("Name") {
+                            textProperty.bindMessage("name")
                             textfield(nameField)
-                            button("Add") {
+                            button(I18n.messageBinding("add")) {
                                 enableWhen(nameField.isNotEmpty)
                                 action {
                                     println(nameField)
@@ -67,29 +76,33 @@ class SetupView(var players: ObservableList<Player> = observableList(Player("Min
                     setSpacing(8.0)
                 }
                 fieldset("Basic Rules") {
+                    textProperty.bindMessage("basicRules")
                     flowpane {
                         hgap = 8.0
                         field("Number of Decks") {
+                            textProperty.bindMessage("deckNumber")
                             textfield(basicRulesModel.deckCount) {
-                                filterInput {
+                                filterInput { //only allow naturals
                                     if (!it.controlNewText.isInt()) return@filterInput false
                                     return@filterInput (Integer.parseInt(it.controlNewText) > 0)
                                 }
                             }
                         }
                         field("Jokers") {
+                            textProperty.bindMessage("jokers")
                             checkbox(property = basicRulesModel.useJokers)
                         }
                         field("Number of Piles") {
+                            textProperty.bindMessage("pileNumber")
                             textfield(basicRulesModel.pileCount) {
-                                filterInput {
+                                filterInput { //only allow naturals
                                     if (!it.controlNewText.isInt()) return@filterInput false
                                     return@filterInput (Integer.parseInt(it.controlNewText) > 0)
                                 }
                             }
                         }
                     }
-                    button("Reset") {
+                    button(I18n.messageBinding("reset")) {
                         action {
                             println("${basicRulesModel.deckCount.value}, ${basicRulesModel.useJokers.value}")
                             basicRulesModel.rollback()
@@ -97,22 +110,28 @@ class SetupView(var players: ObservableList<Player> = observableList(Player("Min
                     }
                 }
                 fieldset("Optional Rules") {
+                    textProperty.bindMessage("gamerules")
                     hbox(8) {
                         field("8-Cutting") {
+                            textProperty.bindMessage("eightCutting")
                             checkbox(property = gamerulesModel.eightCutting)
                         }
                         field("11-Back") {
+                            textProperty.bindMessage("elevenBack")
                             checkbox(property = gamerulesModel.elevenBack)
                         }
                     }
-                    button("Reset") {
+                    button(I18n.messageBinding("reset")) {
                         action {
                             println("${gamerulesModel.eightCutting.value}, ${gamerulesModel.elevenBack.value}")
                             gamerulesModel.rollback()
                         }
                     }
                 }
-                button("Start") {
+                button(I18n.messageBinding("start")) {
+                    enableWhen {
+                        Bindings.greaterThanOrEqual(players.sizeProperty, 2)
+                    }
                     action {
                         if (players.size < 2) return@action //Didn't have time to figure out how to work with enableWhen()
                         start()

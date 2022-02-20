@@ -12,6 +12,7 @@ class Game(val players: List<Player>, private val deckCount: Int = 1, val pileCo
     private lateinit var board: Board
     private var playerIterator: Int = 0
     private var currentPlayerIndex: Int = 0
+    private var gameRunning = false
     private val finishedPlayers = mutableListOf<Player>()
 
     private fun deal() {
@@ -22,7 +23,7 @@ class Game(val players: List<Player>, private val deckCount: Int = 1, val pileCo
                 if (suit == Suit.NONE) {
                     continue
                 }
-                for (value in 3..3) {
+                for (value in 3..15) {
                     cards.add(Card(value, suit))
                 }
             }
@@ -34,13 +35,61 @@ class Game(val players: List<Player>, private val deckCount: Int = 1, val pileCo
         for (i in 0 until cards.size) {
             players[i % players.size].deck.add(cards[i])
         }
+        players.forEach { it.deck.sortBy { card -> card.value }}
         println("Dealt")
     }
+
+    private fun tax() {
+        val playersByTitle = mutableMapOf<Title,Player>()
+        for (player in players) { //excluding commoners
+            if (player.title == Title.COMMONER) continue
+            playersByTitle[player.title] = player //there is only one player with a special title so this works
+        }
+        playersByTitle.forEach {
+            when (it.key) {
+                Title.PRESIDENT -> {
+                    val target = playersByTitle[Title.ASSHOLE] ?: return@forEach
+                    it.value.deck.add(target.deck.last())  //removing the strongest cards twice
+                    println("Removing: ${target.deck.last().value} from ${target.title}")
+                    target.deck.removeLast()
+                    it.value.deck.add(target.deck.last())
+                    println("Removing: ${target.deck.last().value} from ${target.title}")
+                    target.deck.removeLast()
+                }
+                Title.VICE_PRESIDENT -> {
+                    val target = playersByTitle[Title.VICE_ASS] ?: return@forEach
+                    it.value.deck.add(target.deck.last())  //removing the strongest cards twice
+                    println("Removing: ${target.deck.last().value} from ${target.title}")
+                    target.deck.removeLast()
+                }
+                Title.VICE_ASS -> {
+                    val target = playersByTitle[Title.VICE_PRESIDENT] ?: return@forEach
+                    it.value.deck.add(target.deck.first())  //removing the strongest cards twice
+                    println("Removing: ${target.deck.first().value} from ${target.title}")
+                    target.deck.removeFirst()
+                }
+                Title.ASSHOLE -> {
+                    val target = playersByTitle[Title.PRESIDENT] ?: return@forEach
+                    it.value.deck.add(target.deck.first())  //removing the strongest cards twice
+                    println("Removing: ${target.deck.first().value} from ${target.title}")
+                    target.deck.removeFirst()
+                    it.value.deck.add(target.deck.first())
+                    println("Removing: ${target.deck.first().value} from ${target.title}")
+                    target.deck.removeFirst()
+                }
+                else -> {}
+            }
+        }
+    }
+
     fun start() {
+        gameRunning = true
         finishedPlayers.clear()
+        players.forEach { it.finish = false; it.forfeitTrick = false }
         find(GameView::class).game = this
         board = Board()
         deal()
+        tax()
         turn()
     }
 
@@ -113,8 +162,8 @@ class Game(val players: List<Player>, private val deckCount: Int = 1, val pileCo
     }
 
     private fun end() {
+        gameRunning = false
         println(finishedPlayers)
-        players.forEach { it.finish = false}
         val rankedPlayers = mutableListOf<Player>()
         val rankingCount = if (players.size > 3) 2 else 1
         for (i in 0 until rankingCount) {
@@ -155,6 +204,10 @@ class Game(val players: List<Player>, private val deckCount: Int = 1, val pileCo
 
     fun getCurrentPlayer(): Player {
         return players[currentPlayerIndex]
+    }
+
+    fun isGameRunning(): Boolean {
+        return gameRunning
     }
 
     @Serializable

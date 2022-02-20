@@ -1,12 +1,9 @@
 package me.metonspawn.tycoon.app
 
-import javafx.geometry.Pos
 import javafx.scene.layout.BorderStrokeStyle
 import javafx.scene.paint.Color
 import javafx.scene.text.FontWeight
-import me.metonspawn.tycoon.component.CardComponent
 import tornadofx.*
-import tornadofx.Stylesheet.Companion.box
 
 class Styles : Stylesheet() {
     companion object {
@@ -19,6 +16,7 @@ class Styles : Stylesheet() {
         val buttonLocked by cssclass()
         val buttonHover by cssclass()
         val buttonUnhover by cssclass()
+        val invisibleScrollpane by cssclass()
     }
 
     init {
@@ -33,6 +31,9 @@ class Styles : Stylesheet() {
             fontSize = 30.px
             fontWeight = FontWeight.BOLD
             textFill = Color.BLACK
+        }
+        label {
+            fontFamily = "meiryo"
         }
         cardComponent {
             backgroundColor += Color.WHITE
@@ -58,6 +59,12 @@ class Styles : Stylesheet() {
         }
         buttonUnhover {
             backgroundColor += Color.WHITE
+        }
+        scrollPane and invisibleScrollpane {
+            backgroundColor += Color.TRANSPARENT
+            viewport {
+                backgroundColor += Color.TRANSPARENT
+            }
         }
     }
 }

@@ -1,13 +1,15 @@
 package me.metonspawn.tycoon.core
+import javafx.beans.binding.StringBinding
 import kotlinx.serialization.Serializable
+import me.metonspawn.tycoon.util.I18n
 
-enum class Title(private val out: String) {
-    PRESIDENT("President"),
-    VICE_PRESIDENT("Vice President"),
-    COMMONER("Commoner"),
-    VICE_ASS("Vice-Ass"),
-    ASSHOLE("Asshole");
-    override fun toString(): String {
+enum class Title(private val out: StringBinding) {
+    PRESIDENT(I18n.messageBinding("president")),
+    VICE_PRESIDENT(I18n.messageBinding("vicePresident")),
+    COMMONER(I18n.messageBinding("commoner")),
+    VICE_ASS(I18n.messageBinding("viceAss")),
+    ASSHOLE(I18n.messageBinding("asshole"));
+    fun messageBinding(): StringBinding {
         return this.out
     }
 }

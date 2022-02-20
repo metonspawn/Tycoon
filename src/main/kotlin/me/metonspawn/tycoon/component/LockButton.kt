@@ -6,6 +6,8 @@ import javafx.scene.image.ImageView
 import javafx.scene.layout.BorderPane
 import me.metonspawn.tycoon.app.Styles
 import me.metonspawn.tycoon.util.Files
+import me.metonspawn.tycoon.util.I18n
+import me.metonspawn.tycoon.util.I18n.bindMessage
 import tornadofx.*
 
 class LockMenu(private val parent: PileComponent): BorderPane() {
@@ -27,7 +29,7 @@ class LockMenu(private val parent: PileComponent): BorderPane() {
             setOnMouseClicked {
                 toggleLock()
             }
-            label = label("Lock")
+            label = label(I18n.messageBinding("lock"))
         }
         update()
         updateText()
@@ -66,6 +68,6 @@ class LockMenu(private val parent: PileComponent): BorderPane() {
     }
 
     private fun updateText() {
-        label.text = if (parent.getLocked()) { "Unlock" } else { "Lock" }
+        label.textProperty().bindMessage( if (parent.getLocked()) { "unlock" } else { "lock" } )
     }
 }

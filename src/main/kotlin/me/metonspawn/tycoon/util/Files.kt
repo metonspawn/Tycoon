@@ -10,5 +10,6 @@ enum class Files(val image: Image) {
     NONE(Image("none.png")),
     LOCKED(Image("locked.png")),
     UNLOCKED(Image("unlocked.png")),
-    BACK(Image("back.png"))
+    BACK(Image("back.png")),
+    ICON(Image("icon.png"))
 }

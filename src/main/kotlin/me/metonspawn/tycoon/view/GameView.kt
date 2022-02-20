@@ -1,22 +1,18 @@
 package me.metonspawn.tycoon.view
 
+import javafx.beans.property.SimpleStringProperty
 import javafx.geometry.Pos
 import javafx.scene.control.Button
+import javafx.scene.control.ScrollPane
 import javafx.scene.layout.HBox
-import javafx.stage.FileChooser.ExtensionFilter
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import me.metonspawn.tycoon.app.Styles
 import me.metonspawn.tycoon.component.DeckComponent
 import me.metonspawn.tycoon.component.LockMenu
 import me.metonspawn.tycoon.component.PileComponent
 import me.metonspawn.tycoon.component.PlayerComponent
 import me.metonspawn.tycoon.core.Game
+import me.metonspawn.tycoon.util.I18n
 import tornadofx.*
-import java.io.File
-import java.io.FileWriter
-import javax.swing.filechooser.FileSystemView
 
 class GameView: TycoonView() {
     lateinit var game: Game
@@ -25,6 +21,7 @@ class GameView: TycoonView() {
     private var pileBox: HBox by singleAssign()
     private var playerBox: HBox by singleAssign()
     private var checkBox: HBox by singleAssign()
+    private var playerName = SimpleStringProperty("")
     var selectedCard: DeckComponent? = null
 
     override val content = borderpane {
@@ -38,9 +35,9 @@ class GameView: TycoonView() {
             playerBox = this
         }
         center = borderpane {
-            setPrefSize(800.0,400.0)
+            setPrefSize(800.0,500.0)
             top = hbox(4) {
-                setPrefSize(800.0,150.0)
+                setPrefSize(800.0,120.0)
                 alignment = Pos.BOTTOM_CENTER
                 paddingBottom = 10
                 checkBox = this
@@ -50,9 +47,9 @@ class GameView: TycoonView() {
                 pileBox = this
             }
             bottom = hbox {
-                setPrefSize(800.0,150.0)
+                setPrefSize(800.0,145.0)
                 alignment = Pos.CENTER_RIGHT
-                button("End Turn") {
+                button(I18n.messageBinding("endTurn")) {
                     addClass(Styles.endButton)
                     setPrefSize(120.0,50.0)
                     action {
@@ -65,19 +62,37 @@ class GameView: TycoonView() {
                     endButton = this
                 }
                 vbox { //using this to position the button because I'm a bad developer
-                    setPrefSize(100.0,150.0)
+                    prefWidth = 100.0
                 }
             }
         }
         bottom = vbox {
-            setPrefSize(800.0,100.0)
-            alignment = Pos.TOP_CENTER
-            label("Deck") {
-                addClass(Styles.heading)
+            setPrefSize(800.0,130.0)
+            alignment = Pos.BOTTOM_CENTER
+            stackpane {
+                hbox {
+                    label(I18n.messageBinding("playerIndicator").concat(playerName)) {
+                        addClass(Styles.heading)
+                    }
+                }
+                hbox {
+                    alignment = Pos.CENTER
+                    label(I18n.messageBinding("deck")) {
+                        addClass(Styles.heading)
+                    }
+                }
             }
-            hbox {
-                alignment = Pos.CENTER
-                deckBox = this
+            scrollpane {
+                minHeight = 90.0
+                alignment = Pos.BOTTOM_CENTER
+                addClass(Styles.invisibleScrollpane)
+                vbarPolicy = ScrollPane.ScrollBarPolicy.NEVER
+                isFitToHeight = true
+                isFitToWidth = true
+                hbox {
+                    alignment = Pos.CENTER
+                    deckBox = this
+                }
             }
         }
     }
@@ -88,6 +103,7 @@ class GameView: TycoonView() {
         for (card in cards) {
             deckBox.add(DeckComponent(card))
         }
+        playerName.set(game.getCurrentPlayer().name)
     }
 
     private fun updateBoard() {
@@ -170,41 +186,14 @@ class GameView: TycoonView() {
 
     fun replay() {
         val setupView = find(SetupView::class)
-        game.players.forEach{ println(it) }
         setupView.players.setAll(game.getFinishedPlayers())
-        setupView.players.forEach { println(it) }
         setupView.basicRulesModel.item = game.generateBasicRulesHolder()
         setupView.gamerulesModel.item = game.generateGamerulesHolder()
         replaceWith<SetupView>()
     }
 
-    fun save() {
-        if (!this::game.isInitialized) return
-        try {
-            val string = Json.encodeToString(game)
-            println(string)
-            val file = chooseFile("Save game file", filters = arrayOf(ExtensionFilter("Tycoon game save","*.dfg"), ExtensionFilter("All files", "*.*")), mode = FileChooserMode.Save) {
-                initialDirectory = File(FileSystemView.getFileSystemView().defaultDirectory.path) //Documents folder path
-            }[0]
-            val fileWriter = FileWriter(file)
-            fileWriter.write(string)
-            fileWriter.close()
-            println("Saved game")
-        } catch (_: Exception) { println("Failed to write") }
-    }
-
-    fun load(viewToReplace: View = this) {
-        try {
-            val file = chooseFile("Choose a save file", filters = arrayOf(ExtensionFilter("Tycoon game save","*.dfg"), ExtensionFilter("All files", "*.*")), mode = FileChooserMode.Single) {
-                initialDirectory = File(FileSystemView.getFileSystemView().defaultDirectory.path)
-            }[0]
-            val string = file.readText()
-            val game = Json.decodeFromString<Game>(string)
-            this.game = game
-            viewToReplace.replaceWith<GameView>()
-            update()
-            println("Loaded game")
-        } catch (_: Exception) { println("Failed to load") }
+    fun isGameRunning(): Boolean {
+        return this::game.isInitialized && this.game.isGameRunning()
     }
 
     private enum class PlayValidity {
