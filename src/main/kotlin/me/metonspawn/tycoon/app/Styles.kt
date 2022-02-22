@@ -17,6 +17,8 @@ class Styles : Stylesheet() {
         val buttonHover by cssclass()
         val buttonUnhover by cssclass()
         val invisibleScrollpane by cssclass()
+        val immenseText by cssclass()
+        val titleText by cssclass()
     }
 
     init {
@@ -32,7 +34,19 @@ class Styles : Stylesheet() {
             fontWeight = FontWeight.BOLD
             textFill = Color.BLACK
         }
-        label {
+        label and immenseText {
+            padding = box(10.px)
+            fontSize = 40.px
+            fontWeight = FontWeight.BOLD
+            textFill = Color.BLACK
+        }
+        label and titleText {
+            padding = box(15.px)
+            fontSize = 60.px
+            fontWeight = FontWeight.BOLD
+            textFill = Color.BLACK
+        }
+        text {
             fontFamily = "meiryo"
         }
         cardComponent {

@@ -12,7 +12,7 @@ import me.metonspawn.tycoon.util.I18n
 import me.metonspawn.tycoon.util.I18n.bindMessage
 import tornadofx.*
 
-class SetupView(var players: ObservableList<Player> = observableList(Player("Minato Yukina"),Player("Kousaka Kirino"),Player("Charles de Gaulle")), basicRulesHolder: BasicRulesHolder = BasicRulesHolder(), gamerulesHolder: GamerulesHolder = GamerulesHolder()): TycoonView() {
+class SetupView(var players: ObservableList<Player> = observableListOf<Player>(), basicRulesHolder: BasicRulesHolder = BasicRulesHolder(), gamerulesHolder: GamerulesHolder = GamerulesHolder()): TycoonView() {
     private var nameField = SimpleStringProperty()
     private var selectedIndex: Int? = null
     val gamerulesModel = GamerulesModel(gamerulesHolder)
@@ -22,10 +22,16 @@ class SetupView(var players: ObservableList<Player> = observableList(Player("Min
         vbox {
             prefWidth = 400.0
             tableview(players) {
-                readonlyColumn("Player Name", Player::name) { textProperty().bindMessage("playerName") }
+                readonlyColumn("Player Name", Player::name) {
+                    textProperty().bindMessage("playerName")
+                    isSortable = false
+                    remainingWidth()
+                }
                 column("Title",Player::title) {
                     textProperty().bindMessage("title")
+                    isSortable = false
                     cellFormat {
+                        alignment = Pos.CENTER
                         textProperty().bind(it.messageBinding())
                     }
                 }
@@ -111,7 +117,8 @@ class SetupView(var players: ObservableList<Player> = observableList(Player("Min
                 }
                 fieldset("Optional Rules") {
                     textProperty.bindMessage("gamerules")
-                    hbox(8) {
+                    flowpane {
+                        hgap = 8.0
                         field("8-Cutting") {
                             textProperty.bindMessage("eightCutting")
                             checkbox(property = gamerulesModel.eightCutting)
@@ -120,10 +127,13 @@ class SetupView(var players: ObservableList<Player> = observableList(Player("Min
                             textProperty.bindMessage("elevenBack")
                             checkbox(property = gamerulesModel.elevenBack)
                         }
+                        field("Allow same-valued cards to be played") {
+                            textProperty.bindMessage("allowIdenticalValue")
+                            checkbox(property = gamerulesModel.allowIdenticalValue)
+                        }
                     }
                     button(I18n.messageBinding("reset")) {
                         action {
-                            println("${gamerulesModel.eightCutting.value}, ${gamerulesModel.elevenBack.value}")
                             gamerulesModel.rollback()
                         }
                     }
@@ -150,20 +160,23 @@ class SetupView(var players: ObservableList<Player> = observableList(Player("Min
         var pileCount by pileCountProperty
     }
 
-    class GamerulesHolder(eightCutting: Boolean = true, elevenBack: Boolean = false) { //Idem
+    class GamerulesHolder(eightCutting: Boolean = true, elevenBack: Boolean = false, allowIdenticalValue: Boolean = false) { //Idem
         val eightCuttingProperty = SimpleBooleanProperty(this,"eightCutting",eightCutting)
         var eightCutting by eightCuttingProperty
         val elevenBackProperty = SimpleBooleanProperty(this,"elevenBack",elevenBack)
         var elevenBack by elevenBackProperty
+        val allowIdenticalValueProperty = SimpleBooleanProperty(this,"allowIdenticalValue",allowIdenticalValue)
+        var allowIdenticalValue by allowIdenticalValueProperty
 
         fun toGamerules(): Game.Gamerules {
-            return Game.Gamerules(eightCutting,elevenBack)
+            return Game.Gamerules(eightCutting,elevenBack,allowIdenticalValue)
         }
     }
 
     class GamerulesModel(gamerulesHolder: GamerulesHolder = GamerulesHolder()): ItemViewModel<GamerulesHolder>(gamerulesHolder) { //Model to temporarily hold the data
         val eightCutting = bind(GamerulesHolder::eightCuttingProperty)
         val elevenBack = bind(GamerulesHolder::elevenBackProperty)
+        val allowIdenticalValue = bind(GamerulesHolder::allowIdenticalValueProperty)
     }
 
     class BasicRulesModel(basicRulesHolder: BasicRulesHolder = BasicRulesHolder()): ItemViewModel<BasicRulesHolder>(basicRulesHolder) { //Idem

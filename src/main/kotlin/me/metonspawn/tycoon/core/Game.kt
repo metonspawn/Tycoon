@@ -8,7 +8,7 @@ import kotlin.math.max
 import kotlinx.serialization.Serializable
 
 @Serializable
-class Game(val players: List<Player>, private val deckCount: Int = 1, val pileCount: Int = 4, private val useJokers: Boolean = false, private val gamerules: Gamerules = Gamerules()) {
+class Game(val players: List<Player>, private val deckCount: Int = 1, val pileCount: Int = 4, private val useJokers: Boolean = false, val gamerules: Gamerules = Gamerules()) {
     private lateinit var board: Board
     private var playerIterator: Int = 0
     private var currentPlayerIndex: Int = 0
@@ -211,5 +211,5 @@ class Game(val players: List<Player>, private val deckCount: Int = 1, val pileCo
     }
 
     @Serializable
-    data class Gamerules(val eightCutting: Boolean = true, val elevenBack: Boolean = true)
+    data class Gamerules(val eightCutting: Boolean = true, val elevenBack: Boolean = true, val allowIdenticalValue: Boolean = false)
 }

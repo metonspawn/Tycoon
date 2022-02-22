@@ -17,10 +17,10 @@ class Card(val value: Int, val suit: Suit) {
         if (pile.card.value == 0) return true
         if (this.value == 16) return true
         if (pile.lock && pile.card.suit != this.suit) return false
-        return if (board.revolution xor board.elevenBack) {
-            (pile.card.value >= this.value)
+        if (board.revolution xor board.elevenBack) {
+            return if (find(GameView::class).game.gamerules.allowIdenticalValue) { (pile.card.value >= this.value) } else { (pile.card.value > this.value) }
         } else {
-            (pile.card.value <= this.value)
+            return if (find(GameView::class).game.gamerules.allowIdenticalValue) { (pile.card.value <= this.value) } else { (pile.card.value < this.value) }
         }
     }
 }

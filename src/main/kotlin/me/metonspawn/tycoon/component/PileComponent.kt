@@ -15,7 +15,6 @@ class PileComponent(card: Card, private val pileIndex: Int): CardComponent(card)
         init()
         setOnMouseClicked {
             if (it.button == MouseButton.SECONDARY) return@setOnMouseClicked
-            val gameView = find(GameView::class)
             if (gameView.selectedCard != null) { //card placement
                 if (setCard()) { //if successful then refresh
                     gameView.update()
@@ -39,13 +38,13 @@ class PileComponent(card: Card, private val pileIndex: Int): CardComponent(card)
      fun checkSettable(): Boolean {
         val selectedCard = gameView.selectedCard!!.card
         if (board.tempState[pileIndex].card.value != 0) return false //pile vacancy check
+
         var otherStatePileValue = 0 //eliminate piles which did not have a card placed on them the previous turn
-        for (pile in board.state) { //get the value of placed cards, if there are any
-            if (board.state[pileIndex].card.value == 0) continue
-            otherStatePileValue = board.state[pileIndex].card.value
+        for (pile in board.state) { //get the value of cards the previous turn, if there are any
+            otherStatePileValue = pile.card.value
             if (otherStatePileValue != 0) { break }
         }
-        if (board.state[pileIndex].card.value != otherStatePileValue) return false
+        if (board.state[pileIndex].card.value != otherStatePileValue) return false //cannot simply check for 0, since you wouldn't be able to place cards at first then
 
         if (selectedCard.check(board.state[pileIndex])) {
             var otherTempPileValue = 0 //same-value check

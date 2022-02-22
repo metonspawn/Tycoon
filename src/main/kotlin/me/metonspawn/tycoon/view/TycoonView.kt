@@ -47,12 +47,12 @@ abstract class TycoonView: View() {
                 textProperty().bindMessage("language")
                 item("English") {
                     action {
-                        FX.locale = Locale.ENGLISH
+                        I18n.locale = Locale.ENGLISH
                     }
                 }
                 item("日本語") {
                     action {
-                        FX.locale = Locale.JAPANESE
+                        I18n.locale = Locale.JAPANESE
                     }
                 }
             }
@@ -60,7 +60,7 @@ abstract class TycoonView: View() {
         add(content?:vbox())
     }
 
-    fun save() {
+    protected fun save() {
         val gameView = find(GameView::class)
         if (!gameView.isGameRunning()) return
         val game = gameView.game
@@ -82,7 +82,7 @@ abstract class TycoonView: View() {
         } catch (_: Exception) { println("Failed to write") }
     }
 
-    fun load(viewToReplace: View = this) {
+    protected fun load(viewToReplace: View = this) {
         try {
             val file = chooseFile("Choose a save file", filters = arrayOf(
                 FileChooser.ExtensionFilter(

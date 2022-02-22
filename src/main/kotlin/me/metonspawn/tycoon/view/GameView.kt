@@ -1,5 +1,6 @@
 package me.metonspawn.tycoon.view
 
+import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.property.SimpleStringProperty
 import javafx.geometry.Pos
 import javafx.scene.control.Button
@@ -22,6 +23,7 @@ class GameView: TycoonView() {
     private var playerBox: HBox by singleAssign()
     private var checkBox: HBox by singleAssign()
     private var playerName = SimpleStringProperty("")
+    private val playValidityProperty = SimpleObjectProperty(this,"playValidity",PlayValidity.VALID)
     var selectedCard: DeckComponent? = null
 
     override val content = borderpane {
@@ -37,7 +39,7 @@ class GameView: TycoonView() {
         center = borderpane {
             setPrefSize(800.0,500.0)
             top = hbox(4) {
-                setPrefSize(800.0,120.0)
+                setPrefSize(800.0,100.0)
                 alignment = Pos.BOTTOM_CENTER
                 paddingBottom = 10
                 checkBox = this
@@ -45,24 +47,20 @@ class GameView: TycoonView() {
             center = hbox(8) {
                 alignment = Pos.CENTER
                 pileBox = this
+                setMaxSize(800.0,80.0)
             }
             bottom = hbox {
                 setPrefSize(800.0,145.0)
                 alignment = Pos.CENTER_RIGHT
                 button(I18n.messageBinding("endTurn")) {
+                    translateX = -100.0
                     addClass(Styles.endButton)
-                    setPrefSize(120.0,50.0)
+                    setPrefSize(140.0,50.0)
                     action {
-                        when (validatePlay()) {
-                            PlayValidity.INVALID -> return@action
-                            PlayValidity.FORFEIT -> game.forfeitTurn()
-                            PlayValidity.VALID -> game.turn()
-                        }
+                        if (playValidityProperty.get() == PlayValidity.VALID) game.turn() else game.forfeitTurn()
                     }
+                    disableProperty().bind(playValidityProperty.isEqualTo(PlayValidity.INVALID))
                     endButton = this
-                }
-                vbox { //using this to position the button because I'm a bad developer
-                    prefWidth = 100.0
                 }
             }
         }
@@ -135,8 +133,7 @@ class GameView: TycoonView() {
     }
 
     fun update() {
-        updateBoard(); updateDeck(); updatePlayers()
-        if (validatePlay() != PlayValidity.INVALID) {endButton.removeClass(Styles.buttonLocked)} else {endButton.addClass(Styles.buttonLocked)}
+        updateBoard(); updateDeck(); updatePlayers(); validatePlay()
     }
 
     fun selectCard(component: DeckComponent) {
@@ -170,18 +167,18 @@ class GameView: TycoonView() {
         }
     }
 
-    private fun validatePlay(): PlayValidity {
+    private fun validatePlay() {
         val board = game.getBoard()
         var isCardPlaced = false //check if a card has been placed
         for (pileIndex in 0 until game.pileCount) {
             isCardPlaced = board.tempState[pileIndex].card.value != 0
             if (isCardPlaced) break
         }
-        if (!isCardPlaced) return PlayValidity.FORFEIT //to forfeit the trick
+        if (!isCardPlaced) return playValidityProperty.set(PlayValidity.FORFEIT) //to forfeit the trick
         for (i in 0 until game.pileCount) {
-            if (board.state[i].card.value != 0 && board.tempState[i].card.value == 0) return PlayValidity.INVALID
+            if (board.state[i].card.value != 0 && board.tempState[i].card.value == 0) return playValidityProperty.set(PlayValidity.INVALID)
         }
-        return PlayValidity.VALID
+        playValidityProperty.set(PlayValidity.VALID)
     }
 
     fun replay() {
