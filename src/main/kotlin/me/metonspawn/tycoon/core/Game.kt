@@ -6,6 +6,7 @@ import me.metonspawn.tycoon.view.SetupView
 import tornadofx.*
 import kotlin.math.max
 import kotlinx.serialization.Serializable
+import me.metonspawn.tycoon.view.WinnerFragment
 
 @Serializable
 class Game(val players: List<Player>, private val deckCount: Int = 1, val pileCount: Int = 4, private val useJokers: Boolean = false, val gamerules: Gamerules = Gamerules()) {

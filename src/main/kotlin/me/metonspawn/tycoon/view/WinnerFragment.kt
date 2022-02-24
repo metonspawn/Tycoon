@@ -1,10 +1,10 @@
-package me.metonspawn.tycoon.core
+package me.metonspawn.tycoon.view
 
 import javafx.collections.ObservableList
 import javafx.geometry.Pos
 import javafx.scene.text.TextAlignment
 import me.metonspawn.tycoon.app.Styles
-import me.metonspawn.tycoon.view.GameView
+import me.metonspawn.tycoon.core.Player
 import me.metonspawn.tycoon.util.I18n
 import tornadofx.*
 

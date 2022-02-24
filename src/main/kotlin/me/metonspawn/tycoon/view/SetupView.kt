@@ -13,7 +13,7 @@ import me.metonspawn.tycoon.util.I18n.bindMessage
 import tornadofx.*
 
 class SetupView(var players: ObservableList<Player> = observableListOf<Player>(), basicRulesHolder: BasicRulesHolder = BasicRulesHolder(), gamerulesHolder: GamerulesHolder = GamerulesHolder()): TycoonView() {
-    private var nameField = SimpleStringProperty()
+    private val nameField = SimpleStringProperty()
     private var selectedIndex: Int? = null
     val gamerulesModel = GamerulesModel(gamerulesHolder)
     val basicRulesModel = BasicRulesModel(basicRulesHolder)
@@ -67,8 +67,8 @@ class SetupView(var players: ObservableList<Player> = observableListOf<Player>()
                             button(I18n.messageBinding("add")) {
                                 enableWhen(nameField.isNotEmpty)
                                 action {
-                                    println(nameField)
                                     players.add(Player(nameField.value))
+                                    nameField.set("")
                                 }
                             }
                         }
